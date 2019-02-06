@@ -3,6 +3,7 @@ from getpass import getpass
 from os import path, remove, walk, system
 from platform import system as operative_system
 import sys
+import threading
 
 # decoration modules
 from colorama import init as colorama_init
@@ -14,7 +15,8 @@ from Crypto.Cipher import AES
 from Crypto.Protocol import KDF
 from Crypto.Random import get_random_bytes
 
-# parameters for scrypt KDF
+# parameters for scrypt KDF. Edit them to speed up or
+# make the KDF safer. https://blog.filippo.io/the-scrypt-parameters/
 N = 1048576
 r = 8
 p = 1
@@ -22,7 +24,9 @@ p = 1
 allFiles = []
 extension = '.crypt'
 
+
 def encrypt(filename, password):
+    print("Encrypting {0}".format(filename))
     chunksize = 64 * 1024
     nonce = 1
     salt = get_random_bytes(16)
@@ -44,6 +48,7 @@ def encrypt(filename, password):
 
 
 def decrypt(filename, password):
+    print("Decrypting {0}".format(filename))
     chunksize = 64 * 1024
     nonceSize = 8
     nonce = 1
@@ -74,10 +79,11 @@ def decrypt(filename, password):
                     sys.exit()
 
 
-def allfiles(directory):
+def allfiles(directory, enc_dec):
+    global allFiles
     for root, dirs, files in walk(directory):
         for names in files:
-            if option1 == 'e':
+            if enc_dec == 'e':
                 allFiles.append(path.join(root, names))
             else:
                 no_extension, file_extension = path.splitext(names)
@@ -122,9 +128,10 @@ def main():
                 sys.exit()
             option4 = getpass("Insert password for encryption, harder "
                               "it is and stronger will be encryption: ")
-            allfiles(option3)
+            allfiles(option3, option1)
             for File in allFiles:
-                encrypt(File, option4)
+                # encrypt(File, option4)
+                threading.Thread(target=encrypt, args=(File, option4)).run()
             print(Fore.GREEN + "Encryption finished")
             input("If everything is ok, press ENTER to "
                   "remove the old files and exit")
@@ -166,9 +173,10 @@ def main():
                 input(Fore.RED + "Invalid folder. Press ENTER to exit")
                 sys.exit()
             option4 = getpass("Insert password for decryption: ")
-            allfiles(option3)
+            allfiles(option3, option1)
             for File in allFiles:
-                decrypt(File, option4)
+                # decrypt(File, option4)
+                threading.Thread(target=decrypt, args=(File, option4)).run()
             print(Fore.GREEN + "Decryption finished")
             input("If everything is ok, press ENTER to remove " +
                   "the old files and exit")
@@ -184,5 +192,6 @@ def main():
     else:
         input(Fore.RED + "Wrong option selected. Press ENTER to exit")
         sys.exit()
+
 
 main()
