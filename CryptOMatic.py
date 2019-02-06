@@ -7,7 +7,7 @@ import threading
 
 # decoration modules
 from colorama import init as colorama_init
-from colorama import Fore, Style
+from colorama import Fore
 from pyfiglet import Figlet
 
 # encryption modules
@@ -50,7 +50,6 @@ def encrypt(filename, password):
 def decrypt(filename, password):
     print("Decrypting {0}".format(filename))
     chunksize = 64 * 1024
-    nonceSize = 8
     nonce = 1
     outFile, outFile_extension = path.splitext(filename)
     with open(filename, "rb") as infile:
